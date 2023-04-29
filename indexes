@@ -1,0 +1,105 @@
+--Checking out the data
+SELECT *
+FROM customers
+LIMIT 10;
+
+SELECT *
+FROM orders
+LIMIT 10;
+
+SELECT *
+FROM books
+LIMIT 10;
+
+--Viewing any indexes on the tables
+SELECT *
+FROM pg_indexes
+WHERE tablename = 'customers';
+
+SELECT *
+FROM pg_indexes
+WHERE tablename = 'orders';
+
+SELECT *
+FROM pg_indexes
+WHERE tablename = 'books';
+
+--Seeing how long query will take
+EXPLAIN ANALYZE SELECT 
+  customer_id,
+  quantity
+FROM orders
+WHERE quantity > 18;
+
+--Creating an index
+CREATE INDEX orders_customer_id_quantity_idx ON orders(customer_id, quantity)
+WHERE quantity > 18;
+
+
+EXPLAIN ANALYZE SELECT 
+  customer_id,
+  quantity
+FROM orders
+WHERE quantity > 18;
+
+EXPLAIN ANALYZE SELECT
+  customer_id,
+  first_name,
+  last_name
+FROM customers
+WHERE customer_id = 63266;
+
+--Adding primary key to customer_id column
+ALTER TABLE customers
+  ADD CONSTRAINT customers_pkey
+    PRIMARY KEY(customer_id);
+
+EXPLAIN ANALYZE SELECT
+  customer_id,
+  first_name,
+  last_name
+FROM customers
+WHERE customer_id = 63266;
+
+--Creating a clustered index on customer table to sort records
+CLUSTER customers USING customers_pkey;
+
+SELECT *
+FROM customers
+LIMIT 10;
+
+CREATE INDEX orders_customer_id_book_id_idx ON orders (customer_id, book_id);
+
+DROP INDEX IF EXISTS orders_customer_id_book_id_idx;
+
+EXPLAIN ANALYZE SELECT
+  customer_id,
+  book_id,
+  quantity
+FROM orders;
+
+CREATE INDEX orders_customer_id_book_id_quantity_idx ON orders(customer_id, book_id, quantity);
+
+EXPLAIN ANALYZE SELECT
+  customer_id,
+  book_id,
+  quantity
+FROM orders;
+
+CREATE INDEX books_author_title_idx ON books (author, title);
+
+SELECT *
+FROM pg_indexes
+WHERE tablename = 'books';
+
+EXPLAIN ANALYZE SELECT *
+FROM orders
+WHERE (quantity * price_base) > 100;
+
+CREATE INDEX orders_total_price_idx ON
+orders((quantity * price_base > 100));
+
+EXPLAIN ANALYZE SELECT *
+FROM orders
+WHERE (quantity * price_base) > 100;
+
